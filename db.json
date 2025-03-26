@@ -1,0 +1,5 @@
+{
+    "scripts": {
+      "test": "echo \"No test specified\" && exit 1"
+    }
+  }
