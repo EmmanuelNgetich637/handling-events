@@ -1,145 +1,120 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const moviesList = document.getElementById('movies');
-    const buyButton = document.getElementById('buy-ticket');
-    let currentMovie = null;
-   
-async function fetchMovies() {
-    const loadingIndicator = document.getElementById('loading');
-    const errorElement = document.getElementById('error-message');
-    const moviesList = document.getElementById('moviesList');
+// DOM Elements
+const elements = {
+  moviesList: document.getElementById('moviesList'),
+  movieDetails: document.getElementById('movieDetails'),
+  loading: document.getElementById('loading'),
+  error: document.getElementById('error-message')
+};
 
-    try {
-        // Show loading state
-        loadingIndicator.style.display = 'block';
-        errorElement.style.display = 'none';
+// State
+let allMovies = [];
 
-        // Try multiple common backend ports
-        const ports = [3000, 3001, 8080, 8081];
-        let response;
-        let lastError;
+// Initialize App
+document.addEventListener('DOMContentLoaded', initApp);
 
-        for (const port of ports) {
-            try {
-                response = await fetch('http://localhost:${port}/films');
-                if (response.ok) break;
-            } catch (err) {
-                lastError = err;
-                continue;
-            }
-        }
-
-        if (!response || !response.ok) {
-            throw lastError || new Error('Server not responding on any port');
-        }
-
-        const movies = await response.json();
-        moviesList.innerHTML = '';
-
-        movies.forEach(movie => {
-            const li = document.createElement('li');
-            li.className = 'movie-item';
-            li.innerHTML = `
-                <h3>${movie.title}</h3>
-                <p>${movie.description || ''}</p>
-                <span>${movie.runtime} mins</span>
-                <button class="buy-btn" 
-                        data-id="${movie.id}"
-                        data-tickets="${movie.tickets_sold || 0}">
-                    Buy Ticket (${movie.capacity - (movie.tickets_sold || 0)} left)
-                </button>
-            `;
-            moviesList.appendChild(li);
-        });
-
-        if (movies.length > 0) {
-            displayMovieDetails(movies[0]);
-        }
-
-    } catch (error) {
-        console.error('Fetch error:', error);
-        errorElement.textContent = 'Failed to load movies. Please check:';
-        errorElement.innerHTML += `
-            <ul>
-                <li>Is the server running?</li>
-                <li>Check server port (tried 3000, 3001, 8080, 8081)</li>
-                <li>Refresh the page</li>
-            </ul>
-        `;
-        errorElement.style.display = 'block';
-    } finally {
-        loadingIndicator.style.display = 'none';
-    }
+async function initApp() {
+  try {
+      showLoading();
+      allMovies = await fetchMovies();
+      renderMovies(allMovies);
+      if (allMovies.length > 0) showMovieDetails(allMovies[0]);
+  } catch (err) {
+      showError(err);
+  } finally {
+      hideLoading();
+  }
 }
 
-// Add event listener for DOMContentLoaded
-document.addEventListener('DOMContentLoaded', () => {
-    // Initial fetch
-    fetchMovies();
-    
-    // Add click handler for buy buttons (using event delegation)
-    document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('buy-btn')) {
-            const button = e.target;
-            const ticketsLeft = parseInt(button.textContent.match(/\d+/)[0]);
-            
-            if (ticketsLeft > 0) {
-                button.textContent = 'Buy Tickets (`${ticketsLeft - 1} left`)';
-                // Here you would add actual purchase logic
-            } else {
-                button.textContent = 'Sold Out';
-                button.disabled = true;
-            }
-       }
-    });
-});
+// API Functions
+async function fetchMovies() {
+  const response = await fetch('http://localhost:3000/films');
+  if (!response.ok) throw new Error('Failed to load movies');
+  return await response.json();
+}
+
+// Render Functions
+function renderMovies(movies) {
+  elements.moviesList.innerHTML = movies.map(movie => `
+      <li class="movie-item" onclick="showMovieDetails(${movie.id})">
+          <h4>${movie.title}</h4>
+          <p>${movie.runtime} mins • $${movie.ticketPrice}</p>
+          ${renderTicketButton(movie)}
+      </li>
+  `).join('');
+}
+
+function renderTicketButton(movie) {
+  const ticketsLeft = movie.capacity - movie.tickets_sold;
+  const isSoldOut = ticketsLeft <= 0;
   
-    // Display movie details
-    function displayMovieDetails(movie) {
-      currentMovie = movie;
-      const ticketsAvailable = movie.capacity - movie.tickets_sold;
+  return `
+      <button class="buy-btn" 
+              onclick="handleBuyTicket(event, ${movie.id})"
+              ${isSoldOut ? 'disabled' : ''}>
+          ${isSoldOut ? 'Sold Out' : 'Buy Ticket (${ticketsLeft} left)'}
+      </button>
+  `;
+}
+
+function showMovieDetails(movieId) {
+  const movie = allMovies.find(m => m.id === movieId) || allMovies[0];
+  if (!movie) return;
+
+  const ticketsLeft = movie.capacity - movie.tickets_sold;
   
-      document.getElementById('movie-title').textContent = movie.title;
-      document.getElementById('movie-description').textContent = movie.description;
-      document.getElementById('movie-showtime').textContent = `Showtime: ${movie.showtime}`;
-      document.getElementById('movie-tickets').textContent = `Tickets available: ${ticketsAvailable}`;
+  elements.movieDetails.innerHTML = `
+      <h3>${movie.title}</h3>
+      <p><strong>Description:</strong> ${movie.description || 'N/A'}</p>
+      <p><strong>Showtime:</strong> ${movie.showtime}</p>
+      <p><strong>Tickets:</strong> ${ticketsLeft}/${movie.capacity} available</p>
+      <p><strong>Status:</strong> ${ticketsLeft > 0 ? 'Available' : 'Sold Out'}</p>
+  `;
+}
+
+// Event Handlers
+async function handleBuyTicket(event, movieId) {
+  event.stopPropagation();
+  const button = event.target;
+  
+  try {
+      button.disabled = true;
+      button.textContent = 'Processing...';
       
-      // Update poster if available
-      const posterDiv = document.getElementById('movie-poster');
-      posterDiv.innerHTML = movie.poster ? `<img src="${movie.poster}" alt="${movie.title}" /> ` : '';
-      // Update buy button
-      buyButton.disabled = ticketsAvailable <= 0;
-      buyButton.textContent = ticketsAvailable > 0 ? 'Buy Ticket' : 'Sold Out';
-    }
-  
-    // Handle ticket purchase
-    buyButton.addEventListener('click', () => {
-      if (!currentMovie) return;
-      const newTicketsSold = currentMovie.tickets_sold + 1;
-      const ticketsAvailable = currentMovie.capacity - currentMovie.tickets_sold;
-      if (ticketsAvailable <= 0) return;
-  
-      // Update tickets_sold on server
-      fetch(`http://localhost:3001/films/${currentMovie.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          tickets_sold:newTicketsSold
-        })
-      })
-      .then(response => {
-        if (!response.ok) throw new Error('Failed to update tickets');
-        return response.json();
-      })
-      .then(updatedMovie => {
-        const newTicketsAvailable = updatedMovie.capacity - updatedMovie.tickets_sold;
-        document.getElementById('movie-tickets').textContent = `${newTicketsAvailable} remaining tickets`;
-        if (newTicketsAvailable <=0){
-            buyButton.disabled = true;
-            buyButton.textContent = 'Sold Out';
-        }
-      })
-      .catch(error => console.error('Error purchasing ticket:', error));
-    });
-  });
+      // In a real app: await updateServer(movieId);
+      updateLocalTicketCount(movieId);
+      
+      const movie = allMovies.find(m => m.id === movieId);
+      showMovieDetails(movieId);
+      updateButtonUI(button, movie);
+  } catch (err) {
+      button.textContent = 'Error - Try Again';
+  }
+}
+
+// Helper Functions
+function updateLocalTicketCount(movieId) {
+  const movie = allMovies.find(m => m.id === movieId);
+  if (movie && movie.tickets_sold < movie.capacity) {
+      movie.tickets_sold++;
+  }
+}
+
+function updateButtonUI(button, movie) {
+  const ticketsLeft = movie.capacity - movie.tickets_sold;
+  button.textContent = ticketsLeft > 0 ? 'Buy Ticket (${ticketsLeft} left)' : 'Sold Out';
+  button.disabled = ticketsLeft <= 0;
+}
+
+function showLoading() {
+  elements.loading.style.display = 'block';
+  elements.error.style.display = 'none';
+}
+
+function hideLoading() {
+  elements.loading.style.display = 'none';
+}
+
+function showError(error) {
+  elements.error.innerHTML =` Error : ${error.message}`;
+  elements.error.style.display = 'block';
+}

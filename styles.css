@@ -1,63 +1,70 @@
 body {
-    font-family: Arial, sans-serif;
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-  
-  header {
-    text-align: center;
-    margin-bottom: 30px;
-  }
-  
-  main {
-    display: flex;
-    gap: 30px;
-  }
-  
-  #movie-list {
-    width: 30%;
-  }
-  
-  #movies {
-    list-style: none;
-    padding: 0;
-  }
-  
-  #movies li {
-    padding: 10px;
-    cursor: pointer;
-    border-bottom: 1px solid #eee;
-  }
-  
-  #movies li:hover {
-    background-color: #f5f5f5;
-  }
-  
-  #movie-details {
-    width: 70%;
-  }
-  
-  #movie-poster {
-    margin-bottom: 20px;
-  }
-  
-  #movie-poster img {
-    max-width: 100%;
-    height: auto;
-  }
-  
-  #buy-ticket {
-    background-color: #4CAF50;
-    color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  #buy-ticket:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-  }
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+.movie-item {
+  border: 1px solid #ddd;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.movie-item:hover {
+  background-color: #f5f5f5;
+}
+
+.buy-btn {
+  padding: 8px 16px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.buy-btn:hover {
+  background-color: #45a049;
+}
+
+.buy-btn:disabled,
+.buy-btn.sold-out {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+#loading {
+  display: none;
+  padding: 10px;
+  background: #f8f9fa;
+  margin-bottom: 20px;
+}
+
+#error-message {
+  display: none;
+  color: #e74c3c;
+  padding: 10px;
+  background: #fdecea;
+  margin-bottom: 20px;
+}
+
+.movie-details {
+  margin-top: 30px;
+  padding: 20px;
+  background: #f8f9fa;
+  border-radius: 5px;
+}
+
+.movie-details h3 {
+  margin-top: 0;
+  color: #2c3e50;
+}
