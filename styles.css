@@ -1,0 +1,45 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background-color: #ff5733;
+    padding: 15px;
+    color: white;
+}
+
+main {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 20px;
+}
+
+#movie-list {
+    width: 30%;
+}
+
+#movie-details {
+    width: 50%;
+    text-align: left;
+}
+
+img {
+    width: 300px;
+    height: auto;
+}
+
+button {
+    background-color: #28a745;
+    color: white;
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+button:disabled {
+    background-color: gray;
+    cursor: not-allowed;
+}

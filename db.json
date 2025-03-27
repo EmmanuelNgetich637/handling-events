@@ -1,5 +1,24 @@
 {
-    "scripts": {
-      "test": "echo \"No test specified\" && exit 1"
+  "movies": [
+    {
+      "id": 1,
+      "title": "John Wick 4",
+      "runtime": "169 mins",
+      "capacity": 50,
+      "showtime": "7:30 PM",
+      "tickets_sold": 10,
+      "poster": "https://via.placeholder.com/300x450",
+      "description": "An action-packed thriller with high stakes."
+    },
+    {
+      "id": 2,
+      "title": "Avengers: Endgame",
+      "runtime": "181 mins",
+      "capacity": 100,
+      "showtime": "5:00 PM",
+      "tickets_sold": 75,
+      "poster": "https://via.placeholder.com/300x450",
+      "description": "The ultimate superhero showdown."
     }
-  }
+  ]
+}
